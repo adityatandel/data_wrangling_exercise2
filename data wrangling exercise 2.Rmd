@@ -1,0 +1,84 @@
+---
+title: "data wrangling exercise 2"
+output: html_document
+---
+
+## 0: Load the data in RStudio
+## Save the data set as a CSV file called titanic_original.csv and load it in RStudio into a data frame.
+
+```{r}
+titanic_original <- read.csv("/Users/rush/Desktop/Aditya/Data Analysis/Data sets/titanic_original.csv")
+```
+
+## 1: Port of embarkation
+## The embarked column has some missing values, which are known to correspond to passengers who actually embarked at Southampton. Find the missing values and replace them with S. (Caution: Sometimes a missing value might be read into R as a blank or empty string.)
+
+```{r}
+titanic_original %>% filter(embarked == "")
+titanic_original <- titanic_original %>% mutate(embarked_new = ifelse(grepl("C", embarked), "C", ifelse(grepl("Q", embarked), "Q", ifelse(grepl("S", embarked), "S", "S"))))
+titanic_original$embarked <- NULL
+colnames(titanic_original)[14] <- "embarked" 
+```
+
+## 2: Age
+## You’ll notice that a lot of the values in the Age column are missing. While there are many ways to fill these missing values, using the mean or median of the rest of the values is quite common in such cases.
+
+## Calculate the mean of the Age column and use that value to populate the missing values
+## Find out how many values have NA in the age field
+
+```{r}
+count(is.na(titanic_original$age))
+```
+
+##
+##      x freq
+## 1 FALSE 1046
+## 2  TRUE  264
+
+## This tells us that there are 264 NA values in the age field
+
+## Calculate mean
+
+```{r}
+mean_age <- mean(titanic_original$age, na.rm = TRUE)
+mean_age_round <- round(mean_age, digits = 4)
+```
+
+## 29.8811
+
+```{r}
+titanic_original$age[is.na(titanic_original$age)] = mean_age_round
+```
+
+## Confirm that there are no more NA values
+```{r}
+count(is.na(titanic_original$age))
+```
+
+##       x freq
+## 1 FALSE 1310
+
+## Think about other ways you could have populated the missing values in the age column. Why would you pick any of those over the mean (or not)?
+
+## One other way would be to fill NA values with 0. If we choose 0 any analysis we do on this column will be highly scewed as the values in this variable are between 0.1667 and 80 
+
+## 3: Lifeboat
+## You’re interested in looking at the distribution of passengers in different lifeboats, but as we know, many passengers did not make it to a boat :-( This means that there are a lot of missing values in the boat column. Fill these empty slots with a dummy value e.g. the string 'None' or 'NA'
+
+```{r}
+titanic_original$boat <- gsub("^$", "None", titanic_original$boat)
+```
+
+## : Cabin
+## You notice that many passengers don’t have a cabin number associated with them.
+
+## Does it make sense to fill missing cabin numbers with a value?
+
+## What does a missing value here mean?
+
+## You have a hunch that the fact that the cabin number is missing might be a useful indicator of survival. Create a new column has_cabin_number which has 1 if there is a cabin number, and 0 otherwise.
+
+```{r}
+titanic_original$cabin <- gsub("^$", "None", titanic_original$cabin)
+titanic_original <- titanic_original %>% mutate(has_cabin_number = ifelse(cabin == "None", 0, 1))
+```
